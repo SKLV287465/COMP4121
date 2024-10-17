@@ -1,0 +1,79 @@
+\documentclass[12pt, letterpaper]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\title{Order Statistics}
+\author{Joshua Shim}
+\date{October 2024}
+
+\begin{document}
+\maketitle
+\textbf{Problem:} Given $n$ elements, select the $i^{th}$ smallest element.\\
+\textbf{Subproblem 1 - Finding $i$ in linear time using a randomised algorithm:}\\
+\textbf{Idea:} Divide and Conquer; by doing one half of the randomised QuickSort, operating on one side of the partition only.\\
+\textbf{Rand-Select($A,p,r,i$):} choose the $i^{th}$ smallest element of $A[p..r]$.
+\begin{enumerate}
+    \item if $p = r \& i = 1$ return $A[p]$; % if there is only one element in A
+    \item choose a random pivot $p \leq q \leq r$;
+    \item reorder the array $A[p..r]$ such that $A[p..(q - 1)] \leq A[q]$ and $A[(q+1)..r] > A[q]$;
+    \item $k \leftarrow q - p + 1$
+    \item if $k = i$ return $A[q]$;
+    \item if $k < i$ return Rand-Select($A, p, q - 1, i$);
+    \item return Rand-Select($A, q + 1, r, i - k$).
+\end{enumerate}
+\textbf{Analysis of Rand-Select($A, p, r, i$)}\\
+Clearly the worst case run time is $\Theta(n^2)$. However, this is very unlikely to happen:
+\begin{itemize}
+    \item Let us first assume that all the elements in $A$ are distinct.
+    \item Let us call a partition a \textit{balanced partition} if the ratio between the number of elements in the smaller piece and the number of elements in the larger piece is not worse than 1 to 9.
+    \item what is the probability that we get a balanced partition after choosing the pivot?
+    \item This happens if we chose an element which is neither among the smallest $\frac{1}{10}$ nor amongst the largest $\frac{1}{10}$ of all elements.
+    \item Thus, the probability to end up with a balanced partition is $1 - \frac{2}{10} = \frac{8}{10}$.
+    \item The probability that you will need $k$ partitions to end up with another balanced partition is $(\frac{2}{10})^{k - 1} \cdot \frac{8}{10}$.
+    \item The expected number of partitions between two balanced partitions is \begin{align*}
+        E &= 1\cdot \frac{8}{10} + 2 \cdot \frac{2}{10}\frac{8}{10} + 3 \cdot (\frac{2}{10})^2 \cdot \frac{8}{10} + \dots\\
+        &= \frac{8}{10}\cdot \sum_{k = 0}^{\infty}(k + 1)(\frac{2}{10})^k = \frac{8S}{10}
+    \end{align*} where
+    \begin{equation*}
+        S = 1 + 2 \cdot \frac{2}{10} + 3 \cdot (\frac{2}{10})^2 + 4 \cdot (\frac{2}{10})^3 + 5\cdot (\frac{2}{10})^4 + \dots
+    \end{equation*}
+    \item $S = (\frac{10}{8})^2$
+    \item Thus we obtain \begin{equation*}
+        E = \frac{8S}{10} = \frac{8}{10} \cdot (\frac{8}{10})^2 = \frac{10}{8} = \frac{5}{2} < 2.
+    \end{equation*}
+    \item So, on average, there are only $\frac{5}{4}$ partitions between two balanced partitions (such as how we defined it).
+    \item Consequently, the total expected run time satisfies \begin{align*}
+        T(n) &< \frac{5n}{4} + \frac{5}{4}\frac{9n}{10} + \frac{5}{4}(\frac{9}{10})^2n + \frac{5}{4}(\frac{9}{10})^3n + \dots\\
+        &= \frac{\frac{5}{4}n}{1 - \frac{9}{10}}\\
+        &= \frac{50}{4}n\\
+        &= 12.5n
+    \end{align*}
+\end{itemize}
+\textbf{Subproblem 2 - Finding $i$ in linear time using a deterministic algorithm:}\\
+\textbf{Det-Select($n,i$):}\\
+\begin{enumerate}
+    \item Split the numbers in groups of five;
+    \item Order each group by brute force in an increasing order.
+    \item Take every $\lfloor \frac{n}{5} \rfloor$ middle elements of each group.
+    \item Recursively apply Det-Select algorithm to find the median $p$ of this collection.
+    \item Partition all elements using $p$ as a pivot;
+    \item Let $k$ be the number of elements in the subset of all elements $ < p$.
+    \item if $i = k$ return $p$.
+    \item if $i < k$ recursively SELECT the $i^{th}$ smallest element of the set of elements smaller than the pivot.
+    \item otherwise ($i > k$) recursively SELECT the $(i -k)^{th}$ smallest element of the set of elements larger than the pivot.
+\end{enumerate}
+\textbf{What have we accomplished by such a choice of pivot?}\\
+At least $\lfloor (\frac{n}{10}) \rfloor$ group medians are $\leq p$; and at least that many are larger than the pivot.\\
+\textbf{Analysis of Det-Select($i, n$):}\\
+\begin{itemize}
+    \item What is the runtime of our algorithm? \[T(n) \leq T(\frac{n}{5}) + T(\frac{7n}{10} + Cn)\]
+    \item Let us show that $T(n) < 11Cn$ for all $n$. Assume that this is true for all $k < n$ and let us prove it is true for $n$ as well.
+    \item Thus, assume $T(\frac{n}{5}) < 11C \cdot \frac{n}{5}$ and $T(\frac{7n}{10}) < 11C \cdot \frac{7n}{10}$; then
+    \begin{align*}
+        T(n) &\leq T(\frac{n}{5}) + T(\frac{7n}{10}) + Cn\\ &< 11C\cdot \frac{n}{5} + 11C \cdot \frac{7n}{10} + Cn \\
+        &= 109\frac{Cn}{10} \\&< 11C \cdot n
+    \end{align*}
+    which proves our statement that $T(n) < 11C\cdot n$.
+    % I don't actually understand the analysis part though
+\end{itemize}
+
+\end{document}

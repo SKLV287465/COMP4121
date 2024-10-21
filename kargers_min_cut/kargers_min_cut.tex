@@ -1,0 +1,147 @@
+\documentclass[12pt, letterpaper]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\title{Karger's Min Cut Algorithm}
+\author{Joshua Shim}
+\date{October 2024}
+
+\begin{document}
+\maketitle
+\newpage
+\textbf{Min Cut}\\
+\begin{itemize}
+    \item Assume you are given an undirected, connected weighted graph $G = (V, E)$, with weights of all edges positive reals.
+    \item A \textit{cut} $T=(X,Y) \in G$ is any partition of the set of vertices $V$ into two non empty disjoint subsets $X$ and $Y$ such that $V = X \cup Y$.
+    \item The capacity of a \textit{cut} $T = (X, Y)\in G$ is the total sum of weights of all edges which have ends in $X$ and $Y$.
+    \item A \textit{cut} $T = (X,Y)\in G$ is a \textit{minimal cut} if it has the lowest capacity among all cuts in $G$.
+    \item We say that an edge $e(u,v)$ belongs to a cut $T = (X,Y)$ if one of its vertices belongs to $X$ and the other belongs to $Y$.
+\end{itemize}
+\textbf{Karger's Min Cut Algorithm}\\
+\underline{Idea}\\
+We can contract edges by fusing two vertices into a single vertex, summing weights of edges where necessary.\\
+\underline{Initial Heuristics}\\
+\begin{enumerate}
+    \item Claim: If $u$ and $v$ belong to the same side of a minimal cut $(X, Y)$, then after collapsing $u$ and $v$ into a single vertex, the capacity of the minimal cut in $G_{uv}$ is the same as the capacity of the minimal cut in $G$.
+    \item If $u$ and $v$ belong to opposite sides of $(X,Y)\in G$, then after collapsing $u$ and $v$ into a single vertex, the capacity of the minimal cut in $G_{uv}$ is larger or equal to the capacity of the minimal cut in $G$.
+\end{enumerate}
+Proof:\\
+\begin{enumerate}
+    \item Let $T_1 = (X_1, Y_1)$ be a minimal cut in $G_{u, v}$.
+    \item Split vertex $[u, v]$ back into two vertices $u$ and $v$ but keep them on the same side of the minimal cut $T_1$.
+    \item This produces a cut $T_2$ in $G$ of the same capacity as the minimal cut $T_1 \in G_{uv}$.
+    \item Thus, the capacity of the minimal cut in $G$ can only be smaller than the capacity of the minimal cut $T_1$ in $G_{uv}$.
+\end{enumerate}
+\textbf{Algorithm 1:}\\
+\begin{enumerate}
+    \item Pick an edge to contract with a probability proportional to the weight of that edge:\[P(e(u, v)) = \frac{w(u, v)}{\sum_{e(p, q)\in E}w(p, q)}\]
+    \item Continue until only one edge is left.
+    \item Take the capcity of that last edge to be the estimate of the capcity of the minimal cut in $G$.
+\end{enumerate}
+\underline{Theorem 1:}\\
+Let $G_{uv}$ be the graph obtained from $G$ with $n$ vertices by contracting an edge $e(u, v)\in E$. Then the probability that the capcity of a minimal cut in $G_{uv}$ is larger than the capacity of a minimal cut in $G$ is smaller than $\frac{2}{n}$:\begin{equation}
+    P(\text{MIN-CUT-CAPACITY}(G_{uv}) > \text{MIN-CUT-CAPACITY}(G)) < \frac{2}{n}
+\end{equation}
+\underline{Proof:}\\
+\begin{enumerate}
+    \item As we have shown, the capacity of the min cut can increase only if the vertices collapsed are on the opposite sides of every min cut in $G$.
+    \item Let also $M = \{e(x,y) : x\in X, y\in Y\}$ be a minimum cut in $G$; then \begin{equation}
+        P(\text{MIN-CUT-CAPACITY}(G_{uv}) > \text{MIN-CUT-CAPACITY}(G))\leq P(e(u, v)\in M)
+    \end{equation}
+    \item Note that \begin{equation}
+        P(e(u, v)\in M) = \frac{\sum \{w(p, q) : e(p, q)\in M\}}{\sum \{w(u, v) : e(u, v)\in E\}}
+    \end{equation}
+\end{enumerate}
+\underline{Claim:} \begin{equation}
+    2\sum_{e\in E}w(e) = \sum_{v\in V}\sum_{u : e(v, u)\in E}w(v, u)
+\end{equation}
+\underline{Proof:}\\
+In the sum on the right, every edge is counted twice, once for each of its vertices.\\\\
+\underline{Claim:}\\
+For every $v\in V,$\begin{equation}
+    \sum_{u: e(v, u)\in E}w(v, u)\geq \text{MIN-CUT-CAPACITY}(G)
+\end{equation}
+\underline{Proof:}\\
+\begin{enumerate}
+    \item If we let $X = \{v\}$ and $Y = V\ \{v\}$, we get a cut $T = (X, Y)$ whose capacity must be larger or equal to the capcity of the minimal cut $M$.
+    \item Since $|V| = n$, summing the inequalities (5) over all $v\in V$ and using (4) we now obtain\begin{equation}
+        \sum_{w(e)}w(e)\geq \frac{n}{2}\cdot \text{MIN-CUT-CAPACITY}(G)
+    \end{equation}
+    \item From (3) and (6) we now obtain \begin{align*}
+        P(e(u, v)\in M) &= \frac{\sum\{w(p, q) : e(p, q)\in M\}}{\sum w(u, v) : e(u, v)\in E}\\
+        &\leq \frac{\text{MIN-CUT-CABACITY}(G)}{\frac{n}{2}\cdot \text{MIN-CUT-CAPACITY}(G)}\\
+        &=\frac{2}{n}
+    \end{align*}
+    Thus, we obtain \begin{equation}
+        P(\text{MIN-CUT-CAPACITY}(G_{uv}) > \text{MIN-CUT-CAPACITY}(G)\leq P(e(u, v)\in M)\leq \frac{2}{n})
+    \end{equation}
+\end{enumerate}
+\underline{Theorem 2:}\\
+If we run edge contraction procedure until we get a single edge, then the probability $\pi$ that the capacity of that final edge is equal to the capacity of a minimal cut in $G$ is $\Omega(\frac{1}{n^2})$.\\
+\underline{Proof:}
+\begin{enumerate}
+    \item Let $G_i$ for $0 \leq i\leq n - 2$, be the sequence of graphs obtained by successive edge contractions, starting from $G_0 = G$.
+    \item The probability $\pi$ that the capacity of the final edge is equal to the capacity of a minimal cut in $G$ is greater or equal to the probability that we never contracted an edge belonging to $M$.
+    \item Thus, (7) implies \begin{align*}
+        \pi &= P(\text{MIN-CUT-CAPACITY}(G) = \text{MIN-CUT-CAPACITY}(G_{n-2}))\\
+        &= \prod_{i = 1}^{n - 2} P(\text{MIN-CUT-CAPACITY}(G_i) = \text{MIN-CUT-CAPACITY}(G_{i - 1}))\\
+        &\geq (1 - \frac{2}{n})(1-\frac{2}{n - 1})(1 - 2\frac{2}{n - 2})\dots (1- \frac{2}{3})\\
+        &= \frac{n - 2}{n}\cdot \frac{n-3}{n - 1}\cdot\frac{n - 4}{n - 2}\cdot \dots \frac{4}{6}\cdot\frac{3}{5}\cdot\frac{2}{4}\cdot\frac{1}{3}\\
+        &= \frac{2}{n(n - 1)}
+    \end{align*} which implies the claim of the theorem.
+\end{enumerate}
+\underline{Problem:}\\
+$\pi = \Omega(\frac{1}{n^2})$ is a very small probability for large $n$.\\
+\underline{Heuristic:}\\
+Let us run our contraction algorithm only until the number of vertices is $\lfloor \frac{n}{2} \rfloor$.\\
+Then such an algorithm runs in time $O(n^2)$ and we have \begin{align*}
+    &P(\text{MIN-CUT-CAPACITY}(G) = \text{MINN-CUT-CAPACITY}(G_{\frac{n}{2}})\\
+    &= \prod_{i = 1}^{\frac{n}{2}}P(\text{MIN-CUT-CAPACITY}(G) = \text{MINN-CUT-CAPACITY}(G_{i - 1}))\\
+    &\geq (1 - \frac{2}{n})(1- \frac{2}{n - 1})(1 - \frac{2}{n - 2})\dots (1 - \frac{2}{\frac{n}{2} + 1})(1 - \frac{2}{\frac{n}{2}})\\
+    &=\frac{n - 2}{n}\cdot\frac{n - 3}{n - 1}\cdot \frac{n - 4}{n - 2}\cdot \frac{n - 5}{n - 3}\cdot \dots \cdot \frac{\frac{n}{2}}{\frac{n}{2} + 2} \cdot \frac{\frac{n}{2} - 1}{\frac{n}{2} + 1}\cdot \frac{\frac{n}{2} - 2}{\frac{n}{2}}\\
+    &=\frac{(\frac{2}{2} - 1)(\frac{n}{2} - 2)}{n(n - 1)}\\
+    &\approx \frac{1}{4}
+\end{align*}
+This shows that the probability of not picking an edge which belongs to a min cut $M$ is fairly large after $\frac{n}{2}$ many contractions, but drops quickly afterwards. The following algorithm is therfore made.\\\\
+\underline{4-Contract(G):}
+\begin{enumerate}
+    \item $G_0 = (V_0, E_0) \leftarrow G = (V, E)$
+    \item while $|V_0| > 2$: \begin{enumerate}
+        \item for $i = 1 \dots 4$: \begin{enumerate}
+            \item run the randomised edge contraction algorithm on $G_0$ until you get $G_i = (V_i, E_i)$ such that $|V_i| = \frac{|V_0|}{2}$ many vertices.
+        \end{enumerate}
+        \item 4-Contract($G_1$)
+        \item 4-Contract($G_2$)
+        \item 4-Contract($G_3$)
+        \item 4-Contract($G_4$)
+    \end{enumerate}
+    \item return the smallest capacity among the capacities of all produced single edges.
+\end{enumerate}
+\underline{Analysis:}
+Run time: $T(n) = 4T(\frac{n}{2}) + O(n^2)$\\
+By the master theorem (case 2), $T(n) = O(n^2\log(n))$.\\\\
+What is the probability that at least one of the edges will have the capacity of the min cut of $G$, and thus that the algorithm will produce the correct value of MIN-CUT-CAPACITY($G$)?\begin{align*}
+    &P(\text{success for a graph of size $n$}) = 1 - P(\text{failure on all 4 branches})\\
+    &=1 - P(\text{failure on one branch})^4\\
+    &= 1 - (1-P(\text{success on one branch}))^4\\
+    &= 1 - (1 - \frac{1}{4}P(\text{success for a graph of size $\frac{n}{2}$}))^4
+\end{align*}
+Let $p(n) = P(\text{success for a graph of size $n$})$; then \begin{equation*}
+    p(n) = 1 - (1 - \frac{1}{4}p(\frac{n}{2}))^4
+\end{equation*}
+Note that \begin{align}
+    p(n) &= 1 - (1 - \frac{1}{4}p(\frac{n}{2}))^4\\
+    &= p(\frac{n}{2}) - \frac{3}{8}p(\frac{n}{2})^2 = \frac{1}{16}p(\frac{n}{2})^3 - \frac{1}{256}p(\frac{n}{2})^4\\
+    &> p (\frac{n}{2}) - \frac{3}{8}p(\frac{n}{2})^2
+\end{align}
+We now use an induction of type \[\phi(1) \land \forall n (\phi(\lfloor n/2 \rfloor) \to \phi(n)) \to \forall n \phi(n)\] and prove that the assumption $p(\frac{n}{2}) > \frac{1}{\log(\frac{n}{2})} \to p(n) > \frac{1}{\log(n)}$.\\\\
+Using the fact that function $f(x) = x - \frac{3}{8}\cdot x^2$ is monotonically increasing on $[0, 1]$, we ontain from the induction hypothesis and (8) \begin{align*}
+    p(n) &> p(\frac{n}{2}) - \frac{3}{8}p(\frac{n}{2})^2\\
+    &>\frac{1}{\log(\frac{n}{2})} - \frac{3}{8}\frac{1}{(\log(\frac{n}{2}))^2}\\
+    &= \frac{1}{\log(n) - 1} - \frac{3}{8}\frac{1}{(\log(n) - 1)^2}
+\end{align*}
+We now use the fact that \[\frac{1}{x - 1} - \frac{3}{8(x - 1)^2}\geq\frac{1}{x}\]
+for all $x\geq \frac{8}{5}$ to finally obtain $p(n) > \frac{1}{\log(n)}$, which proves the induction hypothesis and we conclude that $p(n) > \frac{1}{\log(n)}$ for all $n \geq 4$.\\\\
+Thus if we run 4-CONTRACT($G$) algorithm $(\log(n))^2$ many times and take the smallest capacity estimate produced, probability $\pi$ that this estimate will be correct is \[\pi = 1 - (\frac{1}{\log(n)})^{(\log(n))^2}\] We now use the fact that for all large $k$, $(1- \frac{1}{k})^k \approx e^{-1}$.Thus,\[\pi \approx 1 - e^{-\log(n)} = 1 - \frac{1}{n}\]So for large $n$ we get the correct value with probability $1 - \frac{1}{n} \approx 1$.\\\\
+Furthermore, to run our algorithm $(\log(n))^2$ times, it takes the total number of steps of only $O(n^2)\log(n) \cdot (\log(n)^2) = O(n^2\log(n)^3) < O(n^4)$.\\\\
+Hence our randomised algorithm runs much faster than the deterministic algorithm but also succeeds with high probability for large $n$.
+\end{document}

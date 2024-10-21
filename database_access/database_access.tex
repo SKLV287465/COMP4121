@@ -1,0 +1,43 @@
+\documentclass[12pt, letterpaper]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\title{Database Access}
+\author{Joshua Shim}
+\date{October 2024}
+
+\begin{document}
+\maketitle
+\newpage
+\textbf{Database Access Problem:}\\
+\begin{itemize}
+    \item Assume that $n$ processes want to acces a database, and that the time is discrete, $t = 1, 2, 3,\dots$
+    \item Simultaneous access requests $\rightarrow$ conflict and all proccesses are locked out of access.
+    \item We assume that the processes cannot communicate with each other to agree on a joint startegy.
+\end{itemize}
+\textbf{Solution:}\\
+One possible approach in such a situation is that each process at each instant $t$ requests with probability $p$ and does not request with probability $1 - p$. How should we choose $p$ to maximise the probability of a successful access to the database for a process at any instant $t$?
+\begin{enumerate}
+    \item Access Success Probability: $P(S(i, t)) = p(1-p)^{n - 1}$
+    \item Extremal points found by: \[\frac{d}{dp}P(S(i, t)) = (1 - p)^{n - 1} - p(n - 1)(1 - p)^{n - 2} = 0\]
+    \item Dividing both sides by $(1-p)^{n-2}$, we get that the above equality holds just in case $1-p-p(n-1) = 0$ which is equivalent to $p = \frac{1}{n}$.
+    \item Hence we get the the optimal $p = \frac{1}{n}$. Hence \[P(S(i, t)) = p(1-p)^{n - 1} = \frac{1}{n}(1 - \frac{1}{n})^{n - 1}\]
+    \item The following two facts are useful: \begin{itemize}
+        \item $(1-\frac{1}{n})^n$ increases monotonomically from $\frac{1}{4}$ up to $\frac{1}{e}$ as $n$ increases from 2 to $\infty$.
+        \item $(1-\frac{1}{n})^{n - 1}$ decreases monotonically from $\frac{1}{2}$ down to $\frac{1}{e}$ as $n$ increases from 2 to $\infty$.
+    \end{itemize}
+    \item Since we had \[P(S(i, t)) = \frac{1}{n}(1 - \frac{1}{n})^{n - 1}\] we obtain \[\frac{1}{n}\cdot\frac{1}{e}\leq P(S(i, t))\leq \frac{1}{n}\cdot\frac{1}{2}\]
+    \item Thus $P(S(i, t)) = \Theta(\frac{1}{n})$.
+    \item $P(\text{failure after $t$ instants}) = (1 - \frac{1}{n}(1 - \frac{1}{n})^{n - 1})^t$.
+    \item Using the second inequality we get $P(\text{failure after $t$ instants}) \approx (1 - \frac{1}{en})^t$.
+    \item \underline{Strange phenomenon:} If we choose $t = en$ many consecutive instants, then the probability of failure is quite large, because \[P(\text{failure after $t = en$ instants}\approx (1 - \frac{1}{en})^{en}\frac{1}{e})\]
+    \item However, if we increase the number of instants only slightly , by taking $t = en\cdot 2\ln(n)$, then \begin{align*}
+        P(\text{failure after $t = en2\ln(n)$ instants}) &\approx (1 - \frac{1}{en})^{2n2\ln(n)}\\
+        &= ((1-\frac{1}{en})^{en})^{\ln(n^2)}\\
+        &\approx (\frac{1}{e})^{\ln(n^2)}\\
+        &=\frac{1}{n^2}
+    \end{align*}
+    \item Thus a slight increase in the number of time instants from $en$ to $2dn\ln(n)$ caused a dramatic reduction in the probability of failure.
+    \item If failure probability is less than $\frac{1}{n^2}$ and there are $n$ processes, then probability that at least one process failed cannot be larger than $n \cdot \frac{1}{n^2} = \frac{1}{n}$.
+    \item Thus after $2en\ln(n)$ instants, all processes succeeded to access the db with probability of at least $1-\frac{1}{n}$.
+\end{enumerate}
+\end{document}
